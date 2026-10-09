@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MTB Wochen-Umfrage 🚵‍♂️</title>
+    <title>MTB Wochen-Umfrage & Media Hub 🚵‍♂️</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-900 text-gray-100 min-h-screen flex flex-col items-center py-10 px-4">
@@ -25,7 +25,7 @@
             </form>
         </div>
 
-        <!-- Haupt-App (Umfrage) -->
+        <!-- Haupt-App -->
         <div id="appSection" class="hidden space-y-6">
             <header class="text-center">
                 <h1 class="text-2xl font-bold text-green-400">MTB Ride Planner 🌲</h1>
@@ -38,20 +38,22 @@
             <!-- Abstimm-Formular -->
             <form id="pollForm" class="space-y-4 bg-gray-900/50 p-4 rounded-xl border border-gray-700">
                 <label class="block text-sm font-medium text-gray-300 mb-2">An welchen Tagen hast du diese Woche Zeit?</label>
-                <div class="grid grid-cols-1 gap-2" id="daysContainer">
-                    <!-- Wird per JS befüllt mit Datum -->
+                <div class="grid grid-cols-1 gap-2" id="daysContainer"></div>
+                
+                <div class="space-y-2 pt-2">
+                    <button type="submit" class="w-full bg-green-600 hover:bg-green-500 text-white font-semibold py-2 rounded-lg transition shadow-lg">
+                        Auswahl speichern ✅
+                    </button>
+                    <button type="button" id="whatsappShareBtn" class="w-full bg-emerald-700 hover:bg-emerald-600 text-white font-semibold py-2 rounded-lg transition shadow-lg flex items-center justify-center space-x-2">
+                        <span>Per WhatsApp teilen 📱</span>
+                    </button>
                 </div>
-                <button type="submit" class="w-full bg-green-600 hover:bg-green-500 text-white font-semibold py-2 rounded-lg transition shadow-lg mt-2">
-                    Auswahl speichern ✅
-                </button>
             </form>
 
-            <!-- Übersicht aller Zusagen -->
+            <!-- Übersicht & Video-Hub -->
             <div>
-                <h2 class="text-lg font-semibold text-gray-200 mb-3 border-b border-gray-700 pb-2">Wer kann wann? (Diese Woche)</h2>
-                <div id="resultsList" class="space-y-3">
-                    <!-- Live Auswertung pro Tag -->
-                </div>
+                <h2 class="text-lg font-semibold text-gray-200 mb-3 border-b border-gray-700 pb-2">Wer kann wann & Videos 🎥</h2>
+                <div id="resultsList" class="space-y-4"></div>
             </div>
         </div>
         
@@ -69,13 +71,13 @@
         const daysContainer = document.getElementById("daysContainer");
         const pollForm = document.getElementById("pollForm");
         const resultsList = document.getElementById("resultsList");
+        const whatsappShareBtn = document.getElementById("whatsappShareBtn");
 
         let currentUser = localStorage.getItem("mtb_current_user") || "";
 
-        // Hilfsfunktion: Berechnet das Datum für Montag bis Sonntag der aktuellen Woche
         function getCurrentWeekDays() {
             const now = new Date();
-            const currentDayOfWeek = now.getDay(); // 0 = Sonntag, 1 = Montag, ...
+            const currentDayOfWeek = now.getDay();
             const distanceToMonday = currentDayOfWeek === 0 ? -6 : 1 - currentDayOfWeek;
             
             const monday = new Date(now);
@@ -92,7 +94,7 @@
         }
 
         const weekDays = getCurrentWeekDays();
-        // Identifikator für die aktuelle Kalenderwoche (z.B. "2026-W41") um Daten jede Woche zurückzusetzen
+
         function getWeekIdentifier() {
             const d = new Date();
             d.setHours(0, 0, 0, 0);
@@ -103,8 +105,18 @@
         }
 
         const currentWeekKey = "mtb_votes_" + getWeekIdentifier();
+        const mediaWeekKey = "mtb_media_" + getWeekIdentifier();
 
-        // Init App State
+        // Automatisches Aufräumen: Alte Daten/Videos nach Ablauf löschen (alles was nicht aktuelle Woche ist)
+        function cleanOldData() {
+            Object.keys(localStorage).forEach(key => {
+                if ((key.startsWith("mtb_votes_") || key.startsWith("mtb_media_")) && key !== currentWeekKey && key !== mediaWeekKey) {
+                    localStorage.removeItem(key);
+                }
+            });
+        }
+        cleanOldData();
+
         if (currentUser) {
             showApp();
         }
@@ -160,6 +172,11 @@
 
         pollForm.addEventListener("submit", (e) => {
             e.preventDefault();
+            saveCurrentVote();
+            alert("Deine Auswahl wurde gespeichert!");
+        });
+
+        function saveCurrentVote() {
             const selectedDays = Array.from(document.querySelectorAll('input[name="day"]:checked'))
                                       .map(cb => cb.value);
 
@@ -176,26 +193,84 @@
 
             localStorage.setItem(currentWeekKey, JSON.stringify(votes));
             renderResults();
-            alert("Deine Auswahl wurde gespeichert!");
+        }
+
+        whatsappShareBtn.addEventListener("click", () => {
+            saveCurrentVote();
+            const selectedDays = Array.from(document.querySelectorAll('input[name="day"]:checked'))
+                                      .map(cb => cb.value);
+
+            let text = `🚵‍♂️ *MTB Ride Planner* (${weekDays[0].date} – ${weekDays[6].date})\n\n`;
+            text += `Ich (${currentUser}) kann diese Woche an folgenden Tagen biken:\n`;
+            
+            if (selectedDays.length === 0) {
+                text += `*(Bisher noch keine Tage ausgewählt)*\n`;
+            } else {
+                selectedDays.forEach(d => { text += `• ${d}\n`; });
+            }
+            text += `\nTrag dich auch hier ein & lad Videos hoch: ${window.location.href}`;
+
+            window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`, '_blank');
         });
+
+        // Video Handling
+        function handleVideoUpload(dayKey, file) {
+            if (file.size > 50 * 1024 * 1024) { // 50MB Limit wegen Browser-Speicher
+                alert("Die Datei ist zu groß (max. 50MB empfohlen).");
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const base64Data = e.target.result;
+                let mediaData = JSON.parse(localStorage.getItem(mediaWeekKey)) || {};
+                
+                if (!mediaData[dayKey]) {
+                    mediaData[dayKey] = [];
+                }
+
+                mediaData[dayKey].push({
+                    uploader: currentUser,
+                    name: file.name,
+                    data: base64Data
+                });
+
+                localStorage.setItem(mediaWeekKey, JSON.stringify(mediaData));
+                renderResults();
+                alert("Video erfolgreich hochgeladen! 🎬");
+            };
+            reader.readAsDataURL(file);
+        }
+
+        window.deleteVideo = function(dayKey, index) {
+            let mediaData = JSON.parse(localStorage.getItem(mediaWeekKey)) || {};
+            if (mediaData[dayKey]) {
+                mediaData[dayKey].splice(index, 1);
+                localStorage.setItem(mediaWeekKey, JSON.stringify(mediaData));
+                renderResults();
+            }
+        };
 
         function renderResults() {
             resultsList.innerHTML = "";
             let votes = JSON.parse(localStorage.getItem(currentWeekKey)) || [];
+            let mediaData = JSON.parse(localStorage.getItem(mediaWeekKey)) || {};
 
             weekDays.forEach(day => {
-                // Finde alle User, die an diesem Tag Zeit haben
                 const availableUsers = votes.filter(v => v.days.includes(day.key)).map(v => v.name);
+                const isUserPresent = availableUsers.includes(currentUser);
+                const dayVideos = mediaData[day.key] || [];
 
                 const card = document.createElement("div");
-                card.className = "bg-gray-900 p-3 rounded-lg border border-gray-700 flex flex-col space-y-1";
+                card.className = "bg-gray-900 p-3 rounded-lg border border-gray-700 flex flex-col space-y-2";
                 
                 const dayHeader = document.createElement("div");
                 dayHeader.className = "flex justify-between items-center text-sm font-semibold text-green-400";
                 dayHeader.innerHTML = `<span>${day.name}</span> <span class="text-xs text-gray-400">${day.date}</span>`;
 
+                // Wer ist dabei
                 const usersContainer = document.createElement("div");
-                usersContainer.className = "flex flex-wrap gap-1 mt-1";
+                usersContainer.className = "flex flex-wrap gap-1";
 
                 if (availableUsers.length === 0) {
                     const noBody = document.createElement("span");
@@ -213,6 +288,67 @@
 
                 card.appendChild(dayHeader);
                 card.appendChild(usersContainer);
+
+                // Video Sektion (nur sichtbar/nutzbar, wenn man für den Tag eingetragen ist)
+                const videoSection = document.createElement("div");
+                videoSection.className = "mt-2 pt-2 border-t border-gray-800 space-y-2";
+
+                if (dayVideos.length > 0) {
+                    const videoListHeader = document.createElement("div");
+                    videoListHeader.className = "text-xs font-semibold text-gray-300";
+                    videoListHeader.textContent = `Videos (${dayVideos.length}):`;
+                    videoSection.appendChild(videoListHeader);
+
+                    dayVideos.forEach((vid, vIndex) => {
+                        const vidBox = document.createElement("div");
+                        vidBox.className = "bg-gray-800 p-2 rounded border border-gray-700 flex flex-col space-y-1";
+                        
+                        vidBox.innerHTML = `
+                            <div class="flex justify-between items-center text-xs text-gray-400">
+                                <span>Von <b>${vid.uploader}</b></span>
+                                ${vid.uploader.toLowerCase() === currentUser.toLowerCase() ? `<button onclick="deleteVideo('${day.key}',${vIndex})" class="text-red-400 hover:underline">Löschen</button>` : ''}
+                            </div>
+                            <video controls class="w-full rounded max-h-48 bg-black">
+                                <source src="${vid.data}" type="video/mp4">
+                                Dein Browser unterstützt keine Videos.
+                            </video>
+                            <a href="${vid.data}" download="${vid.name}" class="text-center bg-gray-700 hover:bg-gray-600 text-green-300 text-xs py-1 rounded transition block">
+                                📥 In voller Qualität herunterladen
+                            </a>
+                        `;
+                        videoSection.appendChild(vidBox);
+                    });
+                }
+
+                if (isUserPresent) {
+                    const uploadBox = document.createElement("div");
+                    uploadBox.className = "flex items-center space-x-2 pt-1";
+                    uploadBox.innerHTML = `
+                        <input type="file" accept="video/*" id="file_${day.key}" class="hidden">
+                        <label for="file_${day.key}" class="cursor-pointer w-full bg-gray-800 hover:bg-gray-700 border border-gray-700 text-center text-xs text-gray-300 py-1.5 rounded transition">
+                            🎬 Video für diesen Tag hochladen
+                        </label>
+                    `;
+                    videoSection.appendChild(uploadBox);
+
+                    setTimeout(() => {
+                        const fileInput = document.getElementById(`file_${day.key}`);
+                        if (fileInput) {
+                            fileInput.addEventListener("change", (e) => {
+                                if (e.target.files.length > 0) {
+                                    handleVideoUpload(day.key, e.target.files[0]);
+                                }
+                            });
+                        }
+                    }, 0);
+                } else {
+                    const hint = document.createElement("div");
+                    hint.className = "text-xs text-gray-500 italic text-center";
+                    hint.textContent = "Trag dich für diesen Tag ein, um Videos hochzuladen.";
+                    videoSection.appendChild(hint);
+                }
+
+                card.appendChild(videoSection);
                 resultsList.appendChild(card);
             });
         }
