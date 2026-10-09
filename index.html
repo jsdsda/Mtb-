@@ -3,154 +3,219 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MTB Ride Planner 🚵‍♂️</title>
-    <!-- Tailwind CSS für modernes Styling -->
+    <title>MTB Wochen-Umfrage 🚵‍♂️</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-900 text-gray-100 min-h-screen flex flex-col items-center py-10 px-4">
 
     <div class="max-w-md w-full bg-gray-800 rounded-2xl shadow-xl p-6 border border-gray-700">
-        <header class="text-center mb-6">
-            <h1 class="text-2xl font-bold text-green-400">MTB Ride Planner 🌲🚴‍♂️</h1>
-            <p class="text-sm text-gray-400 mt-1">Wann hast du Zeit für die nächste Runde?</p>
-        </header>
-
-        <!-- Formular -->
-        <form id="pollForm" class="space-y-4">
-            <div>
-                <label class="block text-sm font-medium text-gray-300 mb-1">Dein Name:</label>
-                <input type="text" id="userName" required placeholder="z.B. Tim oder Henri" 
+        
+        <!-- Login Ansicht -->
+        <div id="loginSection" class="space-y-4">
+            <header class="text-center mb-6">
+                <h1 class="text-2xl font-bold text-green-400">MTB Ride Planner 🌲</h1>
+                <p class="text-sm text-gray-400 mt-1">Bitte gib deinen Namen ein, um fortzufahren:</p>
+            </header>
+            <form id="loginForm" class="space-y-4">
+                <input type="text" id="loginName" required placeholder="Dein Name (z.B. Tim)" 
                     class="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg focus:outline-none focus:border-green-500 text-white">
-            </div>
-
-            <div>
-                <label class="block text-sm font-medium text-gray-300 mb-2">Wähle deine Tage:</label>
-                <div class="grid grid-cols-2 gap-2" id="daysContainer">
-                    <label class="flex items-center space-x-2 bg-gray-900 p-3 rounded-lg border border-gray-700 cursor-pointer hover:border-green-500 transition">
-                        <input type="checkbox" name="day" value="Montag" class="accent-green-500 w-4 h-4">
-                        <span>Montag</span>
-                    </label>
-                    <label class="flex items-center space-x-2 bg-gray-900 p-3 rounded-lg border border-gray-700 cursor-pointer hover:border-green-500 transition">
-                        <input type="checkbox" name="day" value="Dienstag" class="accent-green-500 w-4 h-4">
-                        <span>Dienstag</span>
-                    </label>
-                    <label class="flex items-center space-x-2 bg-gray-900 p-3 rounded-lg border border-gray-700 cursor-pointer hover:border-green-500 transition">
-                        <input type="checkbox" name="day" value="Mittwoch" class="accent-green-500 w-4 h-4">
-                        <span>Mittwoch</span>
-                    </label>
-                    <label class="flex items-center space-x-2 bg-gray-900 p-3 rounded-lg border border-gray-700 cursor-pointer hover:border-green-500 transition">
-                        <input type="checkbox" name="day" value="Donnerstag" class="accent-green-500 w-4 h-4">
-                        <span>Donnerstag</span>
-                    </label>
-                    <label class="flex items-center space-x-2 bg-gray-900 p-3 rounded-lg border border-gray-700 cursor-pointer hover:border-green-500 transition">
-                        <input type="checkbox" name="day" value="Freitag" class="accent-green-500 w-4 h-4">
-                        <span>Freitag</span>
-                    </label>
-                    <label class="flex items-center space-x-2 bg-gray-900 p-3 rounded-lg border border-gray-700 cursor-pointer hover:border-green-500 transition">
-                        <input type="checkbox" name="day" value="Samstag" class="accent-green-500 w-4 h-4">
-                        <span>Samstag</span>
-                    </label>
-                    <label class="flex items-center space-x-2 bg-gray-900 p-3 rounded-lg border border-gray-700 cursor-pointer hover:border-green-500 transition col-span-2">
-                        <input type="checkbox" name="day" value="Sonntag" class="accent-green-500 w-4 h-4">
-                        <span>Sonntag</span>
-                    </label>
-                </div>
-            </div>
-
-            <button type="submit" class="w-full bg-green-600 hover:bg-green-500 text-white font-semibold py-2.5 rounded-lg transition shadow-lg">
-                Abstimmen 🚀
-            </button>
-        </form>
-
-        <!-- Auswertung / Ergebnisse -->
-        <div class="mt-8">
-            <h2 class="text-lg font-semibold text-gray-200 mb-3 border-b border-gray-700 pb-2">Ergebnisse</h2>
-            <div id="resultsList" class="space-y-3">
-                <!-- Hier landen die Einträge dynamisch -->
-            </div>
+                <button type="submit" class="w-full bg-green-600 hover:bg-green-500 text-white font-semibold py-2.5 rounded-lg transition shadow-lg">
+                    Einloggen & Mitfahren 🚀
+                </button>
+            </form>
         </div>
 
-        <button id="resetBtn" class="mt-6 w-full bg-red-600/20 hover:bg-red-600/30 text-red-400 text-xs py-1.5 rounded transition">
-            Alle Daten zurücksetzen
-        </button>
+        <!-- Haupt-App (Umfrage) -->
+        <div id="appSection" class="hidden space-y-6">
+            <header class="text-center">
+                <h1 class="text-2xl font-bold text-green-400">MTB Ride Planner 🌲</h1>
+                <p id="weekDisplay" class="text-xs text-green-300 font-semibold mt-1 bg-green-900/40 py-1 px-2 rounded border border-green-700/50 inline-block"></p>
+                <p class="text-sm text-gray-400 mt-2">Eingeloggt als: <span id="currentUserDisplay" class="text-white font-semibold"></span> 
+                    <button id="logoutBtn" class="text-xs text-red-400 hover:underline ml-2">(Wechseln)</button>
+                </p>
+            </header>
+
+            <!-- Abstimm-Formular -->
+            <form id="pollForm" class="space-y-4 bg-gray-900/50 p-4 rounded-xl border border-gray-700">
+                <label class="block text-sm font-medium text-gray-300 mb-2">An welchen Tagen hast du diese Woche Zeit?</label>
+                <div class="grid grid-cols-1 gap-2" id="daysContainer">
+                    <!-- Wird per JS befüllt mit Datum -->
+                </div>
+                <button type="submit" class="w-full bg-green-600 hover:bg-green-500 text-white font-semibold py-2 rounded-lg transition shadow-lg mt-2">
+                    Auswahl speichern ✅
+                </button>
+            </form>
+
+            <!-- Übersicht aller Zusagen -->
+            <div>
+                <h2 class="text-lg font-semibold text-gray-200 mb-3 border-b border-gray-700 pb-2">Wer kann wann? (Diese Woche)</h2>
+                <div id="resultsList" class="space-y-3">
+                    <!-- Live Auswertung pro Tag -->
+                </div>
+            </div>
+        </div>
+        
     </div>
 
     <!-- JavaScript Logik -->
     <script>
-        document.addEventListener("DOMContentLoaded", loadVotes);
-
-        const form = document.getElementById("pollForm");
+        const loginSection = document.getElementById("loginSection");
+        const appSection = document.getElementById("appSection");
+        const loginForm = document.getElementById("loginForm");
+        const loginNameInput = document.getElementById("loginName");
+        const currentUserDisplay = document.getElementById("currentUserDisplay");
+        const logoutBtn = document.getElementById("logoutBtn");
+        const weekDisplay = document.getElementById("weekDisplay");
+        const daysContainer = document.getElementById("daysContainer");
+        const pollForm = document.getElementById("pollForm");
         const resultsList = document.getElementById("resultsList");
-        const resetBtn = document.getElementById("resetBtn");
 
-        form.addEventListener("submit", (e) => {
-            e.preventDefault();
-            const name = document.getElementById("userName").value.trim();
-            const selectedDays = Array.from(document.querySelectorAll('input[name="day"]:checked'))
-                                      .map(cb => cb.value);
+        let currentUser = localStorage.getItem("mtb_current_user") || "";
 
-            if (selectedDays.length === 0) {
-                alert("Bitte wähle mindestens einen Tag aus!");
-                return;
-            }
-
-            const vote = { name, days: selectedDays, date: new Date().toLocaleDateString() };
+        // Hilfsfunktion: Berechnet das Datum für Montag bis Sonntag der aktuellen Woche
+        function getCurrentWeekDays() {
+            const now = new Date();
+            const currentDayOfWeek = now.getDay(); // 0 = Sonntag, 1 = Montag, ...
+            const distanceToMonday = currentDayOfWeek === 0 ? -6 : 1 - currentDayOfWeek;
             
-            // Bestehende Votes laden
-            let votes = JSON.parse(localStorage.getItem("mtb_votes")) || [];
+            const monday = new Date(now);
+            monday.setDate(now.getDate() + distanceToMonday);
+
+            const days = ["Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag", "Sonntag"];
             
-            // Schauen ob der Name schon da ist -> aktualisieren oder neu hinzufügen
-            const existingIndex = votes.findIndex(v => v.name.toLowerCase() === name.toLowerCase());
-            if (existingIndex > -1) {
-                votes[existingIndex] = vote;
-            } else {
-                votes.push(vote);
-            }
-
-            localStorage.setItem("mtb_votes", JSON.stringify(votes));
-            form.reset();
-            loadVotes();
-        });
-
-        function loadVotes() {
-            resultsList.innerHTML = "";
-            let votes = JSON.parse(localStorage.getItem("mtb_votes")) || [];
-
-            if (votes.length === 0) {
-                resultsList.innerHTML = '<p class="text-sm text-gray-500 text-center py-4">Noch keine Stimmen abgegeben.</p>';
-                return;
-            }
-
-            votes.forEach(vote => {
-                const card = document.createElement("div");
-                card.className = "bg-gray-900 p-3 rounded-lg border border-gray-700 flex flex-col space-y-1";
-                
-                const nameHeader = document.createElement("div");
-                nameHeader.className = "font-semibold text-green-400 text-sm";
-                nameHeader.textContent = vote.name;
-
-                const daysContainer = document.createElement("div");
-                daysContainer.className = "flex flex-wrap gap-1 mt-1";
-
-                vote.days.forEach(day => {
-                    const badge = document.createElement("span");
-                    badge.className = "bg-gray-800 text-gray-300 text-xs px-2 py-0.5 rounded border border-gray-600";
-                    badge.textContent = day;
-                    daysContainer.appendChild(badge);
-                });
-
-                card.appendChild(nameHeader);
-                card.appendChild(daysContainer);
-                resultsList.appendChild(card);
+            return days.map((dayName, index) => {
+                const d = new Date(monday);
+                d.setDate(monday.getDate() + index);
+                const formattedDate = d.toLocaleDateString("de-DE", { day: "2-digit", month: "2-digit" });
+                return { name: dayName, date: formattedDate, key: `${dayName} (${formattedDate})` };
             });
         }
 
-        resetBtn.addEventListener("click", () => {
-            if (confirm("Wirklich alle Stimmen löschen?")) {
-                localStorage.removeItem("mtb_votes");
-                loadVotes();
+        const weekDays = getCurrentWeekDays();
+        // Identifikator für die aktuelle Kalenderwoche (z.B. "2026-W41") um Daten jede Woche zurückzusetzen
+        function getWeekIdentifier() {
+            const d = new Date();
+            d.setHours(0, 0, 0, 0);
+            d.setDate(d.getDate() + 4 - (d.getDay() || 7));
+            const yearStart = new Date(d.getFullYear(), 0, 1);
+            const weekNo = Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+            return `${d.getFullYear()}-W${weekNo}`;
+        }
+
+        const currentWeekKey = "mtb_votes_" + getWeekIdentifier();
+
+        // Init App State
+        if (currentUser) {
+            showApp();
+        }
+
+        loginForm.addEventListener("submit", (e) => {
+            e.preventDefault();
+            const name = loginNameInput.value.trim();
+            if (name) {
+                currentUser = name;
+                localStorage.setItem("mtb_current_user", currentUser);
+                showApp();
             }
         });
+
+        logoutBtn.addEventListener("click", () => {
+            localStorage.removeItem("mtb_current_user");
+            currentUser = "";
+            loginSection.classList.remove("hidden");
+            appSection.classList.add("hidden");
+            loginNameInput.value = "";
+        });
+
+        function showApp() {
+            loginSection.classList.add("hidden");
+            appSection.classList.remove("hidden");
+            currentUserDisplay.textContent = currentUser;
+            weekDisplay.textContent = `Woche: ${weekDays[0].date} – ${weekDays[6].date}`;
+            renderDaysCheckboxes();
+            renderResults();
+        }
+
+        function renderDaysCheckboxes() {
+            daysContainer.innerHTML = "";
+            let votes = JSON.parse(localStorage.getItem(currentWeekKey)) || [];
+            let userVote = votes.find(v => v.name.toLowerCase() === currentUser.toLowerCase());
+            let userSelectedDays = userVote ? userVote.days : [];
+
+            weekDays.forEach(day => {
+                const isChecked = userSelectedDays.includes(day.key);
+                const label = document.createElement("label");
+                label.className = "flex items-center justify-between bg-gray-900 p-2.5 rounded-lg border border-gray-700 cursor-pointer hover:border-green-500 transition";
+                
+                label.innerHTML = `
+                    <div class="flex items-center space-x-2">
+                        <input type="checkbox" name="day" value="${day.key}" ${isChecked ? 'checked' : ''} class="accent-green-500 w-4 h-4">
+                        <span class="text-sm font-medium">${day.name}</span>
+                    </div>
+                    <span class="text-xs text-gray-400">${day.date}</span>
+                `;
+                daysContainer.appendChild(label);
+            });
+        }
+
+        pollForm.addEventListener("submit", (e) => {
+            e.preventDefault();
+            const selectedDays = Array.from(document.querySelectorAll('input[name="day"]:checked'))
+                                      .map(cb => cb.value);
+
+            let votes = JSON.parse(localStorage.getItem(currentWeekKey)) || [];
+            const existingIndex = votes.findIndex(v => v.name.toLowerCase() === currentUser.toLowerCase());
+            
+            const voteData = { name: currentUser, days: selectedDays };
+
+            if (existingIndex > -1) {
+                votes[existingIndex] = voteData;
+            } else {
+                votes.push(voteData);
+            }
+
+            localStorage.setItem(currentWeekKey, JSON.stringify(votes));
+            renderResults();
+            alert("Deine Auswahl wurde gespeichert!");
+        });
+
+        function renderResults() {
+            resultsList.innerHTML = "";
+            let votes = JSON.parse(localStorage.getItem(currentWeekKey)) || [];
+
+            weekDays.forEach(day => {
+                // Finde alle User, die an diesem Tag Zeit haben
+                const availableUsers = votes.filter(v => v.days.includes(day.key)).map(v => v.name);
+
+                const card = document.createElement("div");
+                card.className = "bg-gray-900 p-3 rounded-lg border border-gray-700 flex flex-col space-y-1";
+                
+                const dayHeader = document.createElement("div");
+                dayHeader.className = "flex justify-between items-center text-sm font-semibold text-green-400";
+                dayHeader.innerHTML = `<span>${day.name}</span> <span class="text-xs text-gray-400">${day.date}</span>`;
+
+                const usersContainer = document.createElement("div");
+                usersContainer.className = "flex flex-wrap gap-1 mt-1";
+
+                if (availableUsers.length === 0) {
+                    const noBody = document.createElement("span");
+                    noBody.className = "text-xs text-gray-500 italic";
+                    noBody.textContent = "Bisher keine Zusagen";
+                    usersContainer.appendChild(noBody);
+                } else {
+                    availableUsers.forEach(userName => {
+                        const badge = document.createElement("span");
+                        badge.className = "bg-green-900/60 text-green-200 text-xs px-2 py-0.5 rounded border border-green-700";
+                        badge.textContent = userName;
+                        usersContainer.appendChild(badge);
+                    });
+                }
+
+                card.appendChild(dayHeader);
+                card.appendChild(usersContainer);
+                resultsList.appendChild(card);
+            });
+        }
     </script>
 </body>
 </html>
