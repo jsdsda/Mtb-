@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MTB Ride Planner 🚵‍♂️</title>
+    <!-- Tailwind CSS für modernes Styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-900 text-gray-100 min-h-screen flex flex-col items-center py-10 px-4">
+
+    <div class="max-w-md w-full bg-gray-800 rounded-2xl shadow-xl p-6 border border-gray-700">
+        <header class="text-center mb-6">
+            <h1 class="text-2xl font-bold text-green-400">MTB Ride Planner 🌲🚴‍♂️</h1>
+            <p class="text-sm text-gray-400 mt-1">Wann hast du Zeit für die nächste Runde?</p>
+        </header>
+
+        <!-- Formular -->
+        <form id="pollForm" class="space-y-4">
+            <div>
+                <label class="block text-sm font-medium text-gray-300 mb-1">Dein Name:</label>
+                <input type="text" id="userName" required placeholder="z.B. Tim oder Henri" 
+                    class="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg focus:outline-none focus:border-green-500 text-white">
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-300 mb-2">Wähle deine Tage:</label>
+                <div class="grid grid-cols-2 gap-2" id="daysContainer">
+                    <label class="flex items-center space-x-2 bg-gray-900 p-3 rounded-lg border border-gray-700 cursor-pointer hover:border-green-500 transition">
+                        <input type="checkbox" name="day" value="Montag" class="accent-green-500 w-4 h-4">
+                        <span>Montag</span>
+                    </label>
+                    <label class="flex items-center space-x-2 bg-gray-900 p-3 rounded-lg border border-gray-700 cursor-pointer hover:border-green-500 transition">
+                        <input type="checkbox" name="day" value="Dienstag" class="accent-green-500 w-4 h-4">
+                        <span>Dienstag</span>
+                    </label>
+                    <label class="flex items-center space-x-2 bg-gray-900 p-3 rounded-lg border border-gray-700 cursor-pointer hover:border-green-500 transition">
+                        <input type="checkbox" name="day" value="Mittwoch" class="accent-green-500 w-4 h-4">
+                        <span>Mittwoch</span>
+                    </label>
+                    <label class="flex items-center space-x-2 bg-gray-900 p-3 rounded-lg border border-gray-700 cursor-pointer hover:border-green-500 transition">
+                        <input type="checkbox" name="day" value="Donnerstag" class="accent-green-500 w-4 h-4">
+                        <span>Donnerstag</span>
+                    </label>
+                    <label class="flex items-center space-x-2 bg-gray-900 p-3 rounded-lg border border-gray-700 cursor-pointer hover:border-green-500 transition">
+                        <input type="checkbox" name="day" value="Freitag" class="accent-green-500 w-4 h-4">
+                        <span>Freitag</span>
+                    </label>
+                    <label class="flex items-center space-x-2 bg-gray-900 p-3 rounded-lg border border-gray-700 cursor-pointer hover:border-green-500 transition">
+                        <input type="checkbox" name="day" value="Samstag" class="accent-green-500 w-4 h-4">
+                        <span>Samstag</span>
+                    </label>
+                    <label class="flex items-center space-x-2 bg-gray-900 p-3 rounded-lg border border-gray-700 cursor-pointer hover:border-green-500 transition col-span-2">
+                        <input type="checkbox" name="day" value="Sonntag" class="accent-green-500 w-4 h-4">
+                        <span>Sonntag</span>
+                    </label>
+                </div>
+            </div>
+
+            <button type="submit" class="w-full bg-green-600 hover:bg-green-500 text-white font-semibold py-2.5 rounded-lg transition shadow-lg">
+                Abstimmen 🚀
+            </button>
+        </form>
+
+        <!-- Auswertung / Ergebnisse -->
+        <div class="mt-8">
+            <h2 class="text-lg font-semibold text-gray-200 mb-3 border-b border-gray-700 pb-2">Ergebnisse</h2>
+            <div id="resultsList" class="space-y-3">
+                <!-- Hier landen die Einträge dynamisch -->
+            </div>
+        </div>
+
+        <button id="resetBtn" class="mt-6 w-full bg-red-600/20 hover:bg-red-600/30 text-red-400 text-xs py-1.5 rounded transition">
+            Alle Daten zurücksetzen
+        </button>
+    </div>
+
+    <!-- JavaScript Logik -->
+    <script>
+        document.addEventListener("DOMContentLoaded", loadVotes);
+
+        const form = document.getElementById("pollForm");
+        const resultsList = document.getElementById("resultsList");
+        const resetBtn = document.getElementById("resetBtn");
+
+        form.addEventListener("submit", (e) => {
+            e.preventDefault();
+            const name = document.getElementById("userName").value.trim();
+            const selectedDays = Array.from(document.querySelectorAll('input[name="day"]:checked'))
+                                      .map(cb => cb.value);
+
+            if (selectedDays.length === 0) {
+                alert("Bitte wähle mindestens einen Tag aus!");
+                return;
+            }
+
+            const vote = { name, days: selectedDays, date: new Date().toLocaleDateString() };
+            
+            // Bestehende Votes laden
+            let votes = JSON.parse(localStorage.getItem("mtb_votes")) || [];
+            
+            // Schauen ob der Name schon da ist -> aktualisieren oder neu hinzufügen
+            const existingIndex = votes.findIndex(v => v.name.toLowerCase() === name.toLowerCase());
+            if (existingIndex > -1) {
+                votes[existingIndex] = vote;
+            } else {
+                votes.push(vote);
+            }
+
+            localStorage.setItem("mtb_votes", JSON.stringify(votes));
+            form.reset();
+            loadVotes();
+        });
+
+        function loadVotes() {
+            resultsList.innerHTML = "";
+            let votes = JSON.parse(localStorage.getItem("mtb_votes")) || [];
+
+            if (votes.length === 0) {
+                resultsList.innerHTML = '<p class="text-sm text-gray-500 text-center py-4">Noch keine Stimmen abgegeben.</p>';
+                return;
+            }
+
+            votes.forEach(vote => {
+                const card = document.createElement("div");
+                card.className = "bg-gray-900 p-3 rounded-lg border border-gray-700 flex flex-col space-y-1";
+                
+                const nameHeader = document.createElement("div");
+                nameHeader.className = "font-semibold text-green-400 text-sm";
+                nameHeader.textContent = vote.name;
+
+                const daysContainer = document.createElement("div");
+                daysContainer.className = "flex flex-wrap gap-1 mt-1";
+
+                vote.days.forEach(day => {
+                    const badge = document.createElement("span");
+                    badge.className = "bg-gray-800 text-gray-300 text-xs px-2 py-0.5 rounded border border-gray-600";
+                    badge.textContent = day;
+                    daysContainer.appendChild(badge);
+                });
+
+                card.appendChild(nameHeader);
+                card.appendChild(daysContainer);
+                resultsList.appendChild(card);
+            });
+        }
+
+        resetBtn.addEventListener("click", () => {
+            if (confirm("Wirklich alle Stimmen löschen?")) {
+                localStorage.removeItem("mtb_votes");
+                loadVotes();
+            }
+        });
+    </script>
+</body>
+</html>
